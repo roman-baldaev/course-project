@@ -1,0 +1,3 @@
+#Datasets from the Internet (Kaggle, etc.)
+
+https://www.kaggle.com/keplersmachines/kepler-labelled-time-series-data

@@ -1,0 +1,4 @@
+#Help for the developer
+
+Run Qt5-designer:
+    '/usr/lib/x86_64-linux-gnu/qt5/bin/designer'
