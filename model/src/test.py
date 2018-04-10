@@ -1,17 +1,24 @@
 import DataModel
 import PlotModel
-from ProcessSimulation import Distribution
+from ProcessSimulation import ProcessSimulation, Distribution
 import numpy as np
+
 import matplotlib.pyplot as plt
+import time
 
+if __name__ == '__main__':
 
-if __name__=='__main__':
+    process = ProcessSimulation(1000000, 1000, 5, 0.5, 4, 5, 1, 1)
+    start = time.clock()
+    process.start_simulation()
 
-    model = DataModel.DataModel(0)
-    for i in range(10000000):
-        model.add_time(i-1)
-        model.add_value(i+1)
-    print("Finish")
+    plot = PlotModel.PlotModel(process)
+    # process.get_data().print()
+    plot.show_cdf(50)
+    end = time.clock() - start
+    print(end)
+    # plot.show_realization(0,10000)
+
     # plot = PlotModel.PlotModel(model)
     # plot.show_hist()
 

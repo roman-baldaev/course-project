@@ -23,12 +23,14 @@ class DataModel:
                 self._times = np.array(times, dtype=float)
                 self._values = np.array(values, dtype=float)
 
-    def print(self):
-        if self._times.shape:
-            for i in range(self._times.shape[0]):
-                print("Time: {}___Value: {}".format(self._times[i], self._values[i]))
-        else:
-            print("Empty")
+    def print(self, n=None):
+        if n is not None:
+            _n = n
+        elif self._times.shape:
+                _n = self._times.shape[0]
+        for i in range(_n):
+            print("Time: {}___Value: {}".format(self._times[i], self._values[i]))
+
     def get_values_mean(self):
         return self._times.mean()
 
@@ -38,10 +40,16 @@ class DataModel:
     def get_times(self):
         return self._times
 
-    def add_value(self, value):
-        self._values.__add__(value)
-        # self._values = np.append(self._values, value)
+    def add_value(self, value, index):
+        # self._values.__add__(value)
+        self._values[index] = value
 
-    def add_time(self, time):
-        self._times.__add__(time)
-        # self._times = np.append(self._values, time)
+    def add_time(self, time, index):
+        # self._times.__add__(time)
+        self._times[index] = time
+
+    def get_value(self, index):
+        return self._values[index]
+
+    def get_time(self, index):
+        return self._times[index]
