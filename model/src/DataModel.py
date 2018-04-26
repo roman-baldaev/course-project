@@ -31,7 +31,11 @@ class DataModel:
         for i in range(_n):
             print("Time: {}___Value: {}".format(self._times[i], self._values[i]))
 
-    def get_values_mean(self):
+    @property
+    def mean(self):
+        """
+        :return: Mean of values
+        """
         return self._times.mean()
 
     def get_values(self):
