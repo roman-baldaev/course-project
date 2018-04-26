@@ -42,10 +42,11 @@ class PlotModel:
 
     def calculate_pdf(self, number_of_splits):
 
-        times = self._process.get_data().get_times()
-        values = self._process.get_data().get_values()
+        times = pd.Series(self._process.get_data().get_times())
+        values = pd.Series(self._process.get_data().get_values())
 
         sum_of_time_intervals = np.zeros((number_of_splits, ))
+        sum_of_time_intervals = pd.Series(sum_of_time_intervals)
         steps = np.zeros((number_of_splits, ))
 
         max_value = np.max(values)
@@ -54,24 +55,25 @@ class PlotModel:
         step = diff / number_of_splits
 
         lengths_of_time_intervals = np.array([times[i] - times[i-1] for i in range(1, len(times))], dtype=float)
-        print(times[-1])
-        print(np.sum(lengths_of_time_intervals))
+        lengths_of_time_intervals = pd.Series(lengths_of_time_intervals)
         # for i in range(len(lenghts_of_time_intervals)):
         #     sum_of_time_intervals[floor(values[i] / number_of_splits)] += lenghts_of_time_intervals[i]
-
+        steps[0] = min_value
         for i in range(1, number_of_splits):
             steps[i] = steps[i-1] + step
         steps[number_of_splits-1] = max_value
-        pdf = pd.DataFrame({'values': values[0:-1], 'interval': lengths_of_time_intervals})
+        pdf = pd.DataFrame({'volume': values[0:-1], 'interval': lengths_of_time_intervals})
 
         for i in range(1, len(steps)-1):
-            sum_of_time_intervals[i] = np.sum(pdf[(pdf.values >= steps[i]) & (pdf.values < steps[i+1])].interval)
-        sum_of_time_intervals[-1] = np.sum(pdf[pdf.values >= steps[-1]].interval)
-        sum_of_time_intervals[0] = times[-1] - np.sum(sum_of_time_intervals)
+            sum_of_time_intervals[i] = pd.Series.sum(pdf[(pdf.volume > steps[i]) & (pdf.volume <= steps[i+1])].interval)
+
+
+        sum_of_time_intervals.values[-1] = pd.Series.sum(pdf[pdf.values >= steps[-1]].interval)
+        # sum_of_time_intervals.values[0] = times.values[-1] - pd.Series.sum(sum_of_time_intervals)
         # steps = steps / 2
 
-        sum_of_time_intervals = sum_of_time_intervals / times[-1]
-        print(sum_of_time_intervals)
+        sum_of_time_intervals = sum_of_time_intervals / times.values[-1]
+        print("Sum density: {}".format(pd.Series.sum(sum_of_time_intervals)))
 
         self._pdf = (steps, sum_of_time_intervals)
 
@@ -175,8 +177,10 @@ class PlotModel:
 
         else:
             self.calculate_pdf(number_of_splits)
-        print(len(self._pdf[0]))
+        x = [self._process.get_threshold(), self._process.get_threshold()]
+        y = [np.min(self._pdf[1]), np.max(self._pdf[1])]
         plt.plot(self._pdf[0], self._pdf[1])
+        plt.plot(x, y, color='r')
         plt.show()
 
     def show_cdf(self, number_of_splits):

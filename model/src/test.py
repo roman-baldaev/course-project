@@ -8,13 +8,13 @@ import time
 
 if __name__ == '__main__':
 
-    process = ProcessSimulation(1000000, 1000, 5, 0.5, 4, 5, 1, 1)
+    process = ProcessSimulation(1000000, 1000, 5, 3, 4, 5, 1, 1)
     start = time.clock()
     process.start_simulation()
 
     plot = PlotModel.PlotModel(process)
     # process.get_data().print()
-    plot.show_cdf(50)
+    plot.show_pdf(50)
     end = time.clock() - start
     print(end)
     # plot.show_realization(0,10000)
