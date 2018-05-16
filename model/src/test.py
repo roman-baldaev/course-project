@@ -8,16 +8,22 @@ import time
 
 if __name__ == '__main__':
 
-    process = ProcessSimulation(2000000, 100, 5, 2, 1, 3, 1, 1)
-    start = time.clock()
-    process.start_simulation()
+    process_1 = ProcessSimulation(10000000, 100, 5, 3, 4, 5, 1, 1)
+    process_2 = ProcessSimulation(10000000, 100, 5, 3, 4, 5, 1, 1)
 
-    plot = PlotModel.PlotModel(process)
-    # process.get_data().print()
-    plot.show_pdf(100)
-    # plot.show_cdf(100)
+    start = time.clock()
+    process_1.start_simulation()
+    process_2.start_simulation()
+
+    plot_1 = PlotModel.PlotModel(process_1)
+    plot_2 = PlotModel.PlotModel(process_2)
+    plot_1.show_pdf_with_threshold(100)
+    plot_1.show_pdf_without_threshold(100)
+    plot_1.show_cdf(100)
+    plot_2.show_cdf(100)
     end = time.clock() - start
     print(end)
+    plot_1.kolmogorov_distance(plot_2)
     # plot.show_realization(0,10000)
 
     # plot = PlotModel.PlotModel(model)

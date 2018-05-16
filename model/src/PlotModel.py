@@ -184,7 +184,13 @@ class PlotModel:
                 probabilities[i] = probabilities[i - 1] + 0
         self._cdf = (values, probabilities)
 
-    def show_pdf(self, number_of_splits):
+    def kolmogorov_distance(self, second_plot):
+
+        array_distance = np.absolute(self._cdf[1] - second_plot._cdf[1])
+        print(len(array_distance))
+        print("Kolmogorov distance: {}".format(np.max(array_distance)))
+
+    def show_pdf_with_threshold(self, number_of_splits):
         if self._pdf is not None:
             pass
 
@@ -194,6 +200,17 @@ class PlotModel:
         y = [np.min(self._pdf[1]), np.max(self._pdf[1])]
         plt.plot(self._pdf[0], self._pdf[1])
         plt.plot(x, y, color='r', linewidth=1)
+        plt.show()
+
+    def show_pdf_without_threshold(self, number_of_splits):
+        if self._pdf is not None:
+            pass
+
+        else:
+            self.calculate_pdf(number_of_splits)
+        x = [self._process.get_threshold(), self._process.get_threshold()]
+        y = [np.min(self._pdf[1]), np.max(self._pdf[1])]
+        plt.plot(self._pdf[0], self._pdf[1])
         plt.show()
 
     def show_cdf(self, number_of_splits):
