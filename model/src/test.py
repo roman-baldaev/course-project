@@ -23,6 +23,7 @@ if __name__ == '__main__':
     plot_2.show_cdf(100)
     end = time.clock() - start
     print(end)
+    plot_1.show_two_cdf(plot_2)
     plot_1.kolmogorov_distance(plot_2)
     # plot.show_realization(0,10000)
 

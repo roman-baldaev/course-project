@@ -2,6 +2,7 @@ import DataModel
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import math
 from math import floor
 
 class PlotModel:
@@ -90,6 +91,46 @@ class PlotModel:
 
         self._pdf = (steps, sum_of_time_intervals)
 
+    def calculate_pdf_one_step(self):
+
+        times = pd.Series(self._process.get_data().get_times())
+        values = pd.Series(self._process.get_data().get_values())
+
+        max_value = math.floor(np.max(values))
+        min_value = math.ceil(np.min(values))
+
+        number_of_splits = max_value - min_value
+
+        sum_of_time_intervals = pd.Series(np.zeros((number_of_splits, )))
+        steps = np.zeros((number_of_splits, ))
+
+        steps[0] = min_value
+        for i in range(1, number_of_splits):
+            steps[i] = steps[i-1] + 1
+
+        lengths_of_time_intervals = pd.Series(
+            np.array([times[i] - times[i-1] for i in range(1, len(times))], dtype=float)
+        )
+
+        pdf = pd.DataFrame({'volume': values[0:-1], 'interval': lengths_of_time_intervals})
+
+        for i in range(1, len(steps)-1):
+            sum = pd.Series.sum(pdf[(pdf.volume > steps[i]) & (pdf.volume <= steps[i+1])].interval)
+            if sum is not np.NaN:
+                sum_of_time_intervals[i] = sum
+            else:
+                sum_of_time_intervals[i] = 0
+
+        sum_of_time_intervals.values[-1] = pd.Series.sum(pdf[pdf.values >= steps[-1]].interval)
+        sum_of_time_intervals.values[0] = times.values[-1] - pd.Series.sum(sum_of_time_intervals)
+        # steps = steps / 2
+        print(sum_of_time_intervals)
+
+        sum_of_time_intervals = sum_of_time_intervals / times.values[-1]
+
+
+        self._pdf = (steps, sum_of_time_intervals)
+
     def show_scale_pdf(self, number_for_primary_partition, number_of_splits, start, end):
 
         times = self._process.get_data().get_times()
@@ -155,7 +196,7 @@ class PlotModel:
         # steps = steps / 2
 
         sum_of_time_intervals = sum_of_time_intervals / times[-1]
-        print(sum_of_time_intervals)
+
         plt.plot(steps, sum_of_time_intervals)
         plt.show()
 
@@ -168,7 +209,7 @@ class PlotModel:
 
         # if self._pdf is not None, parameter 'number_of_splits' will be ignored
         if self._pdf is None:
-            self.calculate_pdf(number_of_splits)
+            self.calculate_pdf_one_step()
 
         n = self._pdf[0].shape[0]
         print(n)
@@ -178,24 +219,54 @@ class PlotModel:
         values = self._pdf[0]
 
         for i in range(1, n):
-            if (pdf_probabilities[i] is not None):
+            if pdf_probabilities[i] is not None:
                 probabilities[i] = probabilities[i-1] + pdf_probabilities[i]
             else:
                 probabilities[i] = probabilities[i - 1] + 0
-        self._cdf = (values, probabilities)
+
+        # self._cdf = (values, probabilities)
+        self._cdf = [values, probabilities]
+
 
     def kolmogorov_distance(self, second_plot):
 
+        diff_start = np.int(np.absolute(self._cdf[0][0] - second_plot._cdf[0][0]))
+        diff_end = np.int(np.absolute(self._cdf[0][-1] - second_plot._cdf[0][-1]))
+        zeros = np.zeros((diff_start, ))
+        if self._cdf[0][0] > second_plot._cdf[0][0]:
+            values = [i for i in range(int(second_plot._cdf[0][0]), int(self._cdf[0][0]))]
+            self._cdf[1] = np.concatenate([zeros, self._cdf[1]])
+            self._cdf[0] = np.concatenate([values, self._cdf[0]])
+        else:
+            values = [i for i in range(int(self._cdf[0][0]), int(second_plot._cdf[0][0]))]
+            second_plot._cdf[1] = np.concatenate([zeros, second_plot._cdf[1]])
+            second_plot._cdf[0] = np.concatenate([values, second_plot._cdf[0]])
+
+        ones = np.ones((diff_end, ))
+        if self._cdf[0][-1] < second_plot._cdf[0][-1]:
+            values = [i for i in range(int(self._cdf[0][-1]), int(second_plot._cdf[0][-1]))]
+            self._cdf[1] = np.concatenate([self._cdf[1], ones])
+            self._cdf[0] = np.concatenate([self._cdf[0], values])
+        else:
+            values = [i for i in range(int(second_plot._cdf[0][-1]), int(self._cdf[0][-1]))]
+            second_plot._cdf[1] = np.concatenate([second_plot._cdf[1], ones])
+            second_plot._cdf[0] = np.concatenate([second_plot._cdf[0], values])
+
         array_distance = np.absolute(self._cdf[1] - second_plot._cdf[1])
-        print(len(array_distance))
+
         print("Kolmogorov distance: {}".format(np.max(array_distance)))
+
+    def show_two_cdf(self, second_plot):
+        plt.plot(self._cdf[0], self._cdf[1])
+        plt.plot(second_plot._cdf[0], second_plot._cdf[1], color='red')
+        plt.show()
 
     def show_pdf_with_threshold(self, number_of_splits):
         if self._pdf is not None:
             pass
 
         else:
-            self.calculate_pdf(number_of_splits)
+            self.calculate_pdf_one_step()
         x = [self._process.get_threshold(), self._process.get_threshold()]
         y = [np.min(self._pdf[1]), np.max(self._pdf[1])]
         plt.plot(self._pdf[0], self._pdf[1])
